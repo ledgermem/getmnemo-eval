@@ -24,25 +24,54 @@ care about three properties:
 
 ## Quick reproduction
 
+Using the harness directly:
+
 ```bash
-docker pull ledgermem/eval:latest
+pip install -e ".[dev]"
+getmnemo-eval list-benchmarks
+getmnemo-eval list-systems
+getmnemo-eval run --benchmark longmemeval --mock --output ./results
+```
+
+Against real systems (`--systems` takes a comma-separated list from
+`getmnemo-eval list-systems`, or `all`):
+
+```bash
+export GETMNEMO_API_KEY=...
+export GETMNEMO_WORKSPACE_ID=...
+export MEM0_API_KEY=...
+export ZEP_API_KEY=...
+export OPENAI_API_KEY=...
+getmnemo-eval run --benchmark longmemeval --systems all --output ./results
+```
+
+Or build the pinned image from the bundled `Dockerfile` (its entrypoint is
+`getmnemo-eval`):
+
+```bash
+docker build -t getmnemo-eval .
 docker run --rm \
-  -e LEDGERMEM_API_KEY=... \
-  -e LEDGERMEM_WORKSPACE_ID=... \
+  -e GETMNEMO_API_KEY=... \
+  -e GETMNEMO_WORKSPACE_ID=... \
   -e MEM0_API_KEY=... \
   -e ZEP_API_KEY=... \
   -e OPENAI_API_KEY=... \
   -v "$PWD/results:/work/results" \
-  ledgermem/eval run --benchmark longmemeval --systems all --output /work/results
+  getmnemo-eval run --benchmark longmemeval --systems all --output /work/results
 ```
 
-Or, using the harness directly:
+### Environment variables
 
-```bash
-pip install -e ".[dev]"
-ledgermem-eval list-benchmarks
-ledgermem-eval run --benchmark longmemeval --mock --output ./results
-```
+| Variable | Used by | Notes |
+| --- | --- | --- |
+| `GETMNEMO_API_KEY` | `getmnemo` adapter | Required for that adapter. |
+| `GETMNEMO_WORKSPACE_ID` | `getmnemo` adapter | Required for that adapter. |
+| `GETMNEMO_BASE_URL` | `getmnemo` adapter | Optional API base URL override. |
+| `MEM0_API_KEY` | `mem0` adapter | |
+| `MEM0_USER_ID` | `mem0` adapter | Optional; defaults to `getmnemo-eval`. |
+| `ZEP_API_KEY` | `zep` adapter | |
+| `OPENAI_API_KEY` | `openai-assistants` adapter | |
+| `GETMNEMO_EVAL_SEED` | `run` | Optional integer seed. |
 
 ## Layout
 
@@ -53,7 +82,7 @@ ledgermem-eval run --benchmark longmemeval --mock --output ./results
 │   ├── benchmarks/            # one file per benchmark
 │   ├── scoring.py             # recall, precision, F1, latency percentiles
 │   ├── output.py              # JSON result serialization
-│   └── cli.py                 # ledgermem-eval CLI (click)
+│   └── cli.py                 # getmnemo-eval CLI (click)
 ├── tests/                     # pytest unit + smoke tests
 ├── harness/                   # docs and reproducibility artefacts
 ├── web/                       # Next.js leaderboard site
